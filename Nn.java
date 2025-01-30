@@ -1,7 +1,6 @@
 import java.util.*;
 import java.io.*;
 import java.lang.Math;
-import java.lang.reflect.Array;
 
 class value{
 
@@ -11,7 +10,6 @@ class value{
 
     double grad=0.0;
     double data=0.0;
-    String label="";
     String op="";
 
     value(double data){
@@ -75,9 +73,43 @@ class value{
         }
     }
 
+    void backward(){
+        switch(op){
+            case "+":
+                value v1 = this.prev.get(0);
+                value v2 = this.prev.get(1);
+                v1.grad+=this.grad;
+                v2.grad+=this.grad;
+                break;
+            case "-":
+                value v3 = this.prev.get(0);
+                value v4 = this.prev.get(1);
+                v3.grad+=this.grad;
+                v4.grad-=this.grad;
+                break;
+            case "*":
+                value v5 = this.prev.get(0);
+                value v6 = this.prev.get(1);
+                v5.grad+=this.grad*v6.data;
+                v6.grad+=this.grad*v5.data;
+                break;
+            case "^":
+                value v7 = this.prev.get(0);
+                value v8 = this.prev.get(1);
+                v7.grad+=v8.data*Math.pow(v7.data, v8.data-1)*this.grad;
+                break;
+            case "tanh":
+                value v9 = this.prev.get(0);
+                v9.grad+=(1-this.data*this.data)*this.grad;
+                break;
+            default:
+                break;
+        }
+    }
+
     void reverse(){
         buildtopo(this);
-        for(int i=topo.size()-1;,i>-1;i--){
+        for(int i=topo.size()-1;i>=0;i--){
             topo.get(i).backward();
         }
 
