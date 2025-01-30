@@ -1,6 +1,6 @@
 import java.util.*;
-import java.io.*;
 import java.lang.Math;
+import java.text.DecimalFormat;
 
 class value{
 
@@ -22,8 +22,10 @@ class value{
     }
     @Override
     public String toString(){
-        return "Value(DATA)="+data;
+        DecimalFormat df = new DecimalFormat("##.####"); 
+        return "" + df.format(data);
     }
+    
     value add(value v){
         ArrayList<value> children = new ArrayList<>();
         children.add(this);
@@ -197,7 +199,76 @@ class MLP{
 }
 class Nn{
     public static void main(String[] args){
-        value v1=new value(1.0);
-        System.out.println(v1);
+
+        ArrayList<ArrayList<value>> y = new ArrayList<>();
+        ArrayList<ArrayList<value>> xall = new ArrayList<>();
+        ArrayList<value> ypred = new ArrayList<>();
+        ArrayList<value> yact = new ArrayList<>();
+
+        value loss = new value(0);
+
+        yact.add(new value(1));
+        yact.add(new value(-1));
+        yact.add(new value(-1));
+        yact.add(new value(1));
+
+        ArrayList<value> x =new ArrayList<>();
+
+        x.add(new value(2.0));
+        x.add(new value(3.0));
+        x.add(new value(-1));
+        xall.add(x);
+        x = new ArrayList<>();
+        x.add(new value(3.0));
+        x.add(new value(-1.0));
+        x.add(new value(0.5));
+        xall.add(x);
+        x = new ArrayList<>();
+        x.add(new value(0.5));
+        x.add(new value(1.0));
+        x.add(new value(1));
+        xall.add(x);
+        x = new ArrayList<>();
+        x.add(new value(1.0));
+        x.add(new value(1.0));
+        x.add(new value(-1));
+        xall.add(x);
+
+        int[] nouts = {4,4,1};
+        MLP m = new MLP(3,nouts);
+        ArrayList<value> params;
+        int resume = 200;
+        int cnt =1;
+        do{
+            for (ArrayList<value> xi : xall) {
+                y.add(m.call(xi));
+            }
+            for (ArrayList<value> yi : y) {
+                        ypred.add(yi.get(0));
+            }
+            System.out.println("Epoch  "+cnt);
+            cnt++;
+            System.out.println("    Predicted = "+ypred);
+            System.out.println("    Actual = "+yact);
+            
+            for (int i = 0; i < ypred.size(); i++) {
+                loss=loss.add((ypred.get(i).sub(yact.get(i)).pow(2)));
+            }
+            loss.grad=1;
+            loss.reverse();
+            System.out.println("    Loss = "+loss);
+            params=m.parameters();
+            for (value v : params) {
+                v.data+= -0.1*v.grad;
+            }
+            for (value v : params) {
+                v.grad=0.0;
+            }
+            ypred = new ArrayList<>();
+            y = new ArrayList<>();
+            loss=new value(0);
+            resume--;
+        }while(resume>0);
+
     }
 }
