@@ -112,8 +112,88 @@ class value{
         for(int i=topo.size()-1;i>=0;i--){
             topo.get(i).backward();
         }
-
     }
+}
+class Neuron{
+    ArrayList<value> w = new ArrayList<>();
+    Random random = new Random();
+    value b;
+
+    Neuron(int n){
+        for(int i=0;i<n;i++){
+            double wts = (random.nextDouble()*2)-1;
+            this.w.add(new value(wts));
+        }
+        double bias = (random.nextDouble()*2)-1;
+        this.b = new value(bias);
+    }
+
+    value  call(ArrayList<value> x){
+        value wixi,out;
+        value act = new value(0.0);
+        for(int i =0; i<this.w.size();i++){
+            wixi = w.get(i).mul(x.get(i));
+            act = act.add(wixi);
+        }
+        act = act.add(this.b);
+        out = act.tanh();
+        return out;   
+    }
+
+    ArrayList<value> parameters(){
+        ArrayList<value> p =new ArrayList<>();
+        p.addAll(this.w);
+        p.add(this.b);
+        return p;
+    }    
+}
+
+class Layer{
+    ArrayList<Neuron> neurons = new ArrayList<>();
+    Layer(int nin,int nout){
+        for (int i = 0; i < nout; i++) {
+            this.neurons.add(new Neuron(nin));
+        }
+    }
+
+    ArrayList<value> call(ArrayList<value> x){
+        ArrayList<value> outs = new ArrayList<>();
+        for (Neuron neuron : this.neurons) {
+            outs.add(neuron.call(x));
+        }
+        return outs;
+    } 
+
+    ArrayList<value> parameters(){
+        ArrayList<value>par= new ArrayList<>();
+        for (Neuron neuron : this.neurons) {
+            par.addAll(neuron.parameters());
+        }
+        return par;
+    }
+}
+class MLP{
+    ArrayList<Layer> layers = new ArrayList<>();
+    MLP(int nin,int[] nouts){
+        for (int i = 0; i < nouts.length; i++) {
+            this.layers.add(new Layer(nin, nouts[i]));
+            nin=nouts[i];
+        }
+    }
+    ArrayList<value> call(ArrayList<value> x){
+        for (Layer layer : this.layers) {
+                x=layer.call(x);       
+        }
+        return x;
+    }
+    ArrayList<value> parameters(){
+        ArrayList<value>params= new ArrayList<>();
+        for (Layer layer : this.layers) {
+            params.addAll(layer.parameters());
+        }
+        return params;
+    }
+    
 }
 class Nn{
     public static void main(String[] args){
